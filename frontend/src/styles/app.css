@@ -1,0 +1,37 @@
+:root { --sidebar-width: 260px; }
+body { background:#f5f7fb; color:#1f2937; }
+.app-shell { min-height:100vh; }
+.sidebar {
+  width:var(--sidebar-width); min-height:100vh; background:#172033;
+  position:fixed; left:0; top:0; z-index:1030;
+}
+.sidebar .nav-link {
+  color:#cbd5e1; border-radius:.75rem; margin:.18rem 0; padding:.7rem .85rem;
+}
+.sidebar .nav-link:hover,.sidebar .nav-link.active { background:#293751; color:#fff; }
+.main-content { margin-left:var(--sidebar-width); min-height:100vh; }
+.card-soft { border:0; border-radius:1rem; box-shadow:0 6px 24px rgba(15,23,42,.07); }
+.kpi-icon {
+  width:48px; height:48px; border-radius:14px; background:#eef2ff;
+  display:flex; align-items:center; justify-content:center; font-size:1.3rem;
+}
+.mobile-bottom-nav { display:none; }
+.status-pill { border-radius:999px; padding:.3rem .7rem; background:#e9ecef; font-size:.78rem; }
+.login-wrap { min-height:100vh; background:linear-gradient(135deg,#172033,#334b75); }
+.map-placeholder {
+  min-height:330px; border-radius:1rem; background:linear-gradient(135deg,#eef2f7,#dde6f0);
+  display:flex; align-items:center; justify-content:center; text-align:center;
+}
+.touch-btn { min-height:44px; }
+@media (max-width:991.98px) {
+  .sidebar { display:none; }
+  .main-content { margin-left:0; padding-bottom:76px; }
+  .mobile-bottom-nav {
+    display:flex; position:fixed; bottom:0; left:0; right:0; z-index:1040;
+    background:#fff; border-top:1px solid #e5e7eb; justify-content:space-around;
+    padding:.45rem .15rem calc(.45rem + env(safe-area-inset-bottom));
+  }
+  .mobile-bottom-nav a { color:#6b7280; text-decoration:none; text-align:center; font-size:.72rem; min-width:58px; }
+  .mobile-bottom-nav i { display:block; font-size:1.2rem; line-height:1.1; margin-bottom:.15rem; }
+  .mobile-bottom-nav a.active { color:#0d6efd; }
+}

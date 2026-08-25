@@ -1,0 +1,1 @@
+const {DriverEarning}=require("../models"); async function createEarning(b,rate=20){const g=Number(b.fare||0),c=+(g*rate/100).toFixed(2);return DriverEarning.create({driverId:b.driverId,bookingId:b.id,grossFare:g,commissionRate:rate,commissionAmount:c,netEarning:+(g-c).toFixed(2)})} module.exports={createEarning};

@@ -1,0 +1,1 @@
+const {Notification}=require("../models"); async function notifyBooking(b,title,message){return Notification.create({customerId:b.customerId,driverId:b.driverId||null,channel:"IN_APP",title,message,status:"SENT",sentAt:new Date()})} module.exports={notifyBooking};

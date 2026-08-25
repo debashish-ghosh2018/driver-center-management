@@ -1,0 +1,1 @@
+USE driver_center; -- Development uses Sequelize sync. For production create migrations for ratings, driver_locations, notifications, audit_logs and driver_earnings.
