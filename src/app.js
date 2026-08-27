@@ -12,6 +12,7 @@ const path = require("path");
 
 const authRoutes = require("./routes/auth.routes");
 const apiRoutes = require("./routes");
+const adminApiRoutes = require("./routes/admin-api.routes");
 const extendedRoutes=require("./routes/extended.routes");
 const { notFound, errorHandler } = require("./middleware/error");
 
@@ -76,6 +77,7 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api", apiRoutes);
+app.use("/api/admin", adminApiRoutes);
 app.use("/api",extendedRoutes);
 
 app.use(notFound);
