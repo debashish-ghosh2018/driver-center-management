@@ -7,3 +7,4 @@ exports.get = crud.get;
 exports.create = crud.create;
 exports.update = crud.update;
 exports.remove = crud.remove;
+exports.disable = crud.disable;

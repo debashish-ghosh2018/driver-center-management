@@ -13,10 +13,10 @@ exports.index = async (req, res, next) => {
       completedBookings,
       revenue
     ] = await Promise.all([
-      Customer.count(),
-      Driver.count(),
-      Driver.count({ where: { availability: "AVAILABLE", status: "ACTIVE" } }),
-      Vehicle.count(),
+      Customer.count({ where: { isDeleted: 0 } }),
+      Driver.count({ where: { isDeleted: 0 } }),
+      Driver.count({ where: { isDeleted: 0, availability: "AVAILABLE", status: "ACTIVE" } }),
+      Vehicle.count({ where: { isDeleted: 0 } }),
       Booking.count({ where: { status: "PENDING" } }),
       Booking.count({ where: { status: ["CONFIRMED","ASSIGNED","ACCEPTED","STARTED"] } }),
       Booking.count({ where: { status: "COMPLETED" } }),

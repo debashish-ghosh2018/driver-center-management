@@ -10,7 +10,8 @@ class Vehicle extends Model {
       year: DataTypes.INTEGER,
       insuranceExpiry: DataTypes.DATEONLY,
       fitnessExpiry: DataTypes.DATEONLY,
-      status: { type: DataTypes.ENUM("ACTIVE", "INACTIVE", "MAINTENANCE"), defaultValue: "ACTIVE" }
+      status: { type: DataTypes.ENUM("ACTIVE", "INACTIVE", "MAINTENANCE"), defaultValue: "ACTIVE" },
+      isDeleted: { type: DataTypes.INTEGER.UNSIGNED.ZEROFILL }
     }, { sequelize, modelName: "Vehicle", tableName: "vehicles", timestamps: true });
     return Vehicle;
   }

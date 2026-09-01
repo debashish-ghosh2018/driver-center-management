@@ -1,5 +1,6 @@
 const { Booking, Customer, Driver, Vehicle, DriverEarning, Notification, AuditLog } = require("../models");
 
+/*
 exports.list = async (req, res, next) => {
   try {
     const where = {};
@@ -16,6 +17,40 @@ exports.list = async (req, res, next) => {
     });
     res.json(rows);
   } catch (e) { next(e); }
+};
+*/
+
+exports.list = async (req, res, next) => {
+    try {
+      const where = {};
+
+      if (req.user.role === "CUSTOMER") {
+        if (!req.user.customerId) {
+          return res.status(403).json({ message: "Customer profile is not linked" });
+        }
+        where.customerId = req.user.customerId;
+      }
+
+      if (req.user.role === "DRIVER") {
+        if (!req.user.driverId) {
+          return res.status(403).json({message: "Driver profile is not linked"});
+        }
+        where.driverId = req.user.driverId;
+      }
+
+      const rows = await Booking.findAll({
+        where, 
+        include: [
+          {model: Customer, attributes: ["id", "name", "mobile"]}, 
+          {model: Driver, attributes: ["id", "name", "mobile", "rating"]}, 
+          {model: Vehicle, attributes: ["id", "vehicleNo", "vehicleType"]}
+        ], 
+        order: [["id", "DESC"]]
+      });
+      res.json(rows);
+    } catch (error) {
+      next(error);
+    }
 };
 
 exports.get = async (req, res, next) => {

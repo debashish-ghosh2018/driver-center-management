@@ -11,3 +11,4 @@ exports.create = async (req, res, next) => {
 };
 exports.update = crud.update;
 exports.remove = crud.remove;
+exports.disable = crud.disable;

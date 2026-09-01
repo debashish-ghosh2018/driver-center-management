@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const { authenticate, authorize } = require("../middleware/auth");
+const { canAccessBooking } = require("../middleware/resource-access");
 const { createCrud } = require("../controllers/crud.controller");
 const { Customer, Driver, Vehicle } = require("../models");
 
@@ -154,7 +155,7 @@ router.put("/customers/:id", customer.update);
 *       200:
 *         description: Used by the admin dashboard.
 */
-router.delete("/customers/:id", customer.remove);
+router.delete("/customers/:id", customer.disable);	// customer.remove
 
 const driver = require("../controllers/driver.controller");
 router.use("/drivers", ...admin);
@@ -304,7 +305,7 @@ router.put("/drivers/:id", driver.update);
 *       200:
 *         description: Used by the admin dashboard.
 */
-router.delete("/drivers/:id", driver.remove);
+router.delete("/drivers/:id", driver.disable);	// driver.remove
 
 /**
 * @swagger
@@ -486,7 +487,7 @@ router.put("/vehicles/:id", vehicle.update);
 *       200:
 *         description: Used by the admin dashboard.
 */
-router.delete("/vehicles/:id", vehicle.remove);
+router.delete("/vehicles/:id", vehicle.disable);		// vehicle.remove
 
 const booking = require("../controllers/booking.controller");
 router.use("/bookings", ...auth);
@@ -526,7 +527,7 @@ router.get("/bookings", booking.list);
 *       200:
 *         description: Used by the admin dashboard.
 */
-router.get("/bookings/:id", booking.get);
+router.get("/bookings/:id", authenticate, canAccessBooking, booking.get);
 
 /**
 * @swagger

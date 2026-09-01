@@ -1,0 +1,229 @@
+html, body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+/* ==============================
+  Main Layout
+================================ */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 260px;
+  flex-direction: column;
+  background: #182433;
+  color: #fff;
+  z-index: 1030;
+}
+
+.admin-main {
+  width: calc(100% - 260px);
+  min-height: 100vh;
+  margin-left: 260px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==============================
+  Sidebar Brand
+================================ */
+.sidebar-brand {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-logo {
+  width: 42px;
+  height: 42px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.1);
+  font-size: 20px;
+}
+
+/* ==============================
+  Sidebar Navigation
+================================ */
+.sidebar-navigation {
+  padding: 15px 10px;
+  overflow-y: auto;
+}
+
+.sidebar-heading {
+  padding: 18px 15px 8px;
+  color: rgba(255,255,255,0.45);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sidebar-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  margin-bottom: 3px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(255,255,255,0.72);
+  text-align: left;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-link i {
+  width: 20px;
+  text-align: center;
+  font-size: 17px;
+}
+
+.sidebar-link:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+.sidebar-link.active {
+  background: #0d6efd;
+  color: #fff;
+}
+
+.sidebar-link.text-danger {
+  color: #ff8088 !important;
+}
+
+/* ==============================
+  Sidebar User
+================================ */
+.sidebar-user {
+  padding: 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-user-avatar {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+}
+
+/* ==============================
+  Header
+================================ */
+.admin-header {
+  min-height: 72px;
+  align-items: center;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1px solid #e9ecef;
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+}
+
+/* ==============================
+  Content
+================================ */
+.admin-content {
+  flex-grow: 1;
+  padding: 24px;
+}
+
+/* ==============================
+  Footer
+================================ */
+.admin-footer {
+  padding: 16px 24px;
+  background: #fff;
+  border-top: 1px solid #e9ecef;
+}
+
+/* ==============================
+  Cards
+================================ */
+.card {
+  border-radius: 10px;
+}
+
+/* ==============================
+  Tables
+================================ */
+.table > :not(caption) > * > * {
+  padding: 0.85rem 0.75rem;
+}
+
+.table thead th {
+  white-space: nowrap;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  color: #6c757d;
+  background: #f8f9fa;
+}
+
+/* ==============================
+  Mobile Sidebar
+================================ */
+.offcanvas.text-bg-dark {
+  background: #182433 !important;
+}
+
+.offcanvas .sidebar-link {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* ==============================
+  Responsive
+================================ */
+@media (max-width: 991.98px) {
+
+  .admin-main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .admin-content {
+    padding: 18px;
+  }
+
+  .admin-footer {
+    padding: 15px 18px;
+  }
+}
+
+@media (max-width: 575.98px) {
+
+  .admin-content {
+    padding: 14px;
+  }
+
+  .card-body {
+    padding: 16px;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+  }
+}

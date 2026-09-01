@@ -12,9 +12,10 @@ class Driver extends Model {
       licenseExpiry: DataTypes.DATEONLY,
       experienceYears: { type: DataTypes.DECIMAL(4,1), defaultValue: 0 },
       rating: { type: DataTypes.DECIMAL(3,2), defaultValue: 0 },
-      userId: { type: DataTypes.INTEGER, allowNull: true },
+      userId: { type: DataTypes.INTEGER, allowNull: true, unique: true },
       status: { type: DataTypes.ENUM("ACTIVE", "INACTIVE", "SUSPENDED"), defaultValue: "ACTIVE" },
-      availability: { type: DataTypes.ENUM("AVAILABLE", "BUSY", "OFFLINE"), defaultValue: "OFFLINE" }
+      availability: { type: DataTypes.ENUM("AVAILABLE", "BUSY", "OFFLINE"), defaultValue: "OFFLINE" },
+      isDeleted: { type: DataTypes.INTEGER.UNSIGNED, defaultValue: 0 }
     }, { sequelize, modelName: "Driver", tableName: "drivers", timestamps: true });
     return Driver;
   }

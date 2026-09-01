@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
-const {User,Permission,RolePermission} = require("../models");
+const {User,Customer,Driver,Permission,RolePermission} = require("../models");
 
+/*
 exports.list = async (req, res, next) => {
     try {
         res.json(await User.unscoped().findAll({
@@ -13,6 +14,26 @@ exports.list = async (req, res, next) => {
         }));
     } catch (e) {
         next(e)
+    }
+};
+*/
+
+exports.list = async (req, res, next) => {
+    try {
+        const users = await User.unscoped().findAll({
+            attributes: {exclude: ["passwordHash"]},
+            include: [
+                {model: Customer, as: "customerProfile", attributes: ["id", "customerCode", "mobile", "status"]},
+                {model: Driver, as: "driverProfile", attributes: ["id", "driverCode", "mobile", "availability", "status"]}
+            ],
+            order: [
+                ["id", "DESC"]
+            ]
+        });
+
+        res.json(users);
+    } catch (error) {
+      next(error);
     }
 };
 
@@ -94,6 +115,56 @@ exports.remove = async (req, res, next) => {
         });
     } catch (e) {
         next(e)
+    }
+};
+
+exports.linkCustomer = async (req, res, next) => {
+    try {
+      const user = await User.unscoped().findByPk(req.params.userId);
+      const customer = await Customer.findByPk(req.body.customerId);
+
+      if (!user || !customer) {
+        return res.status(404).json({message: "User or customer not found"});
+      }
+
+      if (user.role !== "CUSTOMER") {
+        return res.status(400).json({message: "User role must be CUSTOMER"});
+      }
+
+      if (customer.userId) {
+        return res.status(409).json({ message: "Customer is already linked to another user"});
+      }
+
+      await customer.update({userId: user.id});
+
+      res.json({message: "Customer linked successfully"});
+    } catch (error) {
+      next(error);
+    }
+};
+
+exports.linkDriver = async (req, res, next) => {
+    try {
+      const user = await User.unscoped().findByPk(req.params.userId);
+      const driver = await Driver.findByPk(req.body.driverId);
+
+      if (!user || !driver) {
+        return res.status(404).json({message: "User or driver not found"});
+      }
+
+      if (user.role !== "DRIVER") {
+        return res.status(400).json({message: "User role must be DRIVER"});
+      }
+
+      if (driver.userId) {
+        return res.status(409).json({message: "Driver already linked to another user"});
+      }
+
+      await driver.update({userId: user.id});
+
+      res.json({message: "Driver linked successfully"});
+    } catch (error) {
+      next(error);
     }
 };
 
