@@ -227,3 +227,74 @@ body {
     font-size: 1.4rem;
   }
 }
+
+/* ======================================
+   APPLICATION SETTINGS
+====================================== */
+
+.settings-icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #f0f4ff;
+  font-size: 1.2rem;
+  color: #0d6efd;
+  flex-shrink: 0;
+}
+
+.settings-option {
+  height: 100%;
+  padding: 16px;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.settings-disabled {
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
+}
+
+.settings-disabled input, .settings-disabled select, .settings-disabled textarea {
+  cursor: not-allowed;
+}
+
+#applicationSettingsForm .card {
+  border: 0;
+}
+
+#applicationSettingsForm .card-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid #edf0f3;
+}
+
+#applicationSettingsForm .card-body {
+  padding: 20px;
+}
+
+#applicationSettingsForm .form-switch .form-check-input {
+  cursor: pointer;
+}
+
+#applicationSettingsForm .form-label {
+  font-weight: 500;
+}
+
+
+#applicationSettingsForm code {
+  font-size: 0.875rem;
+}
+
+
+@media (max-width: 767.98px) {
+  #saveAllSettingsBtn {
+    width: 100%;
+  }
+
+  .settings-option {
+    padding: 14px;
+  }
+}

@@ -1,5 +1,9 @@
 const router = require("express").Router();
+
 const controller = require("../controllers/auth.controller");
+
+const {authenticate} = require("../middleware/auth");
+
 
   /**
    * @swagger
@@ -50,5 +54,9 @@ const controller = require("../controllers/auth.controller");
    *         description: login
    */
 router.post("/login", controller.login);
+
+//router.get("/me",authenticate,controller.me);
+
+//router.post("/change-password",authenticate,controller.changePassword);
 
 module.exports = router;

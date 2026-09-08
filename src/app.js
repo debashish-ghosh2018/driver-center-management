@@ -10,10 +10,34 @@ const swaggerSpec=require("./swagger");
 const path = require("path");
 
 
+
 const authRoutes = require("./routes/auth.routes");
+const customerRoutes = require("./routes/customer.routes");
+const driverRoutes = require("./routes/driver.routes");
+const vehicleRoutes = require("./routes/vehicle.routes");
+const bookingRoutes = require("./routes/booking.routes");
+const paymentRoutes = require("./routes/payment.routes");
+//const driverEarningRoutes = require("./routes/driverEarning.routes");
+//const ratingRoutes = require("./routes/rating.routes");
+//const notificationRoutes = require("./routes/notification.routes");
+//const reportRoutes = require("./routes/report.routes");
+const adminUserRoutes = require("./routes/adminUser.routes");
+const adminCustomerRoutes = require("./routes/adminCustomer.routes");
+const adminDriverRoutes = require("./routes/adminDriver.routes");
+const adminSettingsRoutes = require("./routes/adminSettings.routes");
+const aclRoutes = require("./routes/acl.routes");
+//const auditRoutes = require("./routes/audit.routes");
+
+
+
+//const authRoutes = require("./routes/auth.routes");
 const apiRoutes = require("./routes");
-const adminApiRoutes = require("./routes/admin-api.routes");
+//const adminApiRoutes = require("./routes/admin-api.routes");
 const extendedRoutes=require("./routes/extended.routes");
+//const adminSettingsRoutes = require("./routes/adminSettings.routes");
+
+
+
 const { notFound, errorHandler } = require("./middleware/error");
 
 const app = express();
@@ -75,9 +99,37 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", service: "driver-center-api", time: new Date().toISOString() });
 });
 
+
+/*
+ * Authentication
+ */
 app.use("/api/auth", authRoutes);
+/*
+ * Core modules
+ */
+app.use("/api/customers", customerRoutes);
+app.use("/api/drivers", driverRoutes);
+app.use("/api/vehicles", vehicleRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/payments", paymentRoutes);
+//app.use("/api/driver-earnings", driverEarningRoutes);
+//app.use("/api/ratings", ratingRoutes);
+//app.use("/api/notifications", notificationRoutes);
+//app.use("/api/reports", reportRoutes);
+/*
+ * Admin modules
+ */
+app.use("/api/admin/users", adminUserRoutes);
+app.use("/api/admin/customers", adminCustomerRoutes);
+app.use("/api/admin/drivers", adminDriverRoutes);
+app.use("/api/admin/settings", adminSettingsRoutes);
+app.use("/api/admin/acl", aclRoutes);
+//app.use("/api/admin/audit", auditRoutes);
+
+
+//app.use("/api/auth", authRoutes);
 app.use("/api", apiRoutes);
-app.use("/api/admin", adminApiRoutes);
+//app.use("/api/admin", adminApiRoutes);
 app.use("/api",extendedRoutes);
 
 app.use(notFound);

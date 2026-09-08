@@ -19,8 +19,10 @@ function showLogin() {
 async function api(url, options = {}) {
   const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
   if (token) headers.Authorization = `Bearer ${token}`;
+
   const res = await fetch(API + url, { ...options, headers });
   const data = await res.json().catch(() => ({}));
+
   if (!res.ok) throw new Error(data.message || "Request failed");
   return data;
 }
@@ -170,6 +172,7 @@ async function loadPage(name) {
     if (name === "reports") return reports();
     if (name === "users") return usersPage();
     if (name === "acl") return aclPage();
+    if (name === "settings") return applicationSettingsPage();
     if (name === "change-password") return changePasswordPage();
   } catch (e) {
     page.innerHTML = `<div class="alert alert-danger">${e.message}</div>`;
@@ -840,9 +843,10 @@ async function bookings() {
     <div class="d-flex justify-content-between mb-3"><h2>Bookings</h2>
       <button class="btn btn-primary" onclick="newBooking()">New Booking</button></div>
     <div class="card border-0 shadow-sm"><div class="card-body table-responsive">
-    <table class="table table-hover"><thead><tr><th>No</th><th>Customer</th><th>Driver</th><th>Pickup</th><th>Drop</th><th>Date</th><th>Fare</th><th>Status</th><th>Action</th></tr></thead>
+    <table class="table table-hover"><thead><tr><th>No</th><th>Customer</th><th>Driver</th><th>Pickup</th><th>Drop</th><th>Date</th><th>Trip</th><th>Fare</th><th>Status</th><th>Action</th></tr></thead>
     <tbody>${rows.map(r=>`<tr>
       <td>${r.bookingNo}</td><td>${r.Customer?.name||""}</td><td>${r.Driver?.name||"Unassigned"}</td>
+      <td> ${r.tripCategory === "OUTSTATION" ? `<span class="badge text-bg-warning"><i class="bi bi-signpost-split me-1"></i>Outstation</span>` : `<span class="badge text-bg-secondary">Local</span>`} </td>
       <td>${r.pickupLocation}</td><td>${r.dropLocation}</td><td>${r.pickupDate}</td><td>₹${r.fare}</td>
       <td><span class="badge text-bg-secondary">${r.status}</span></td>
       <td><button class="btn btn-sm btn-outline-primary me-1 booking-edit-btn" data-id="${r.id}"><i class="bi bi-pencil-square"></i>Edit</button><button class="btn btn-sm btn-outline-primary" onclick="assign(${r.id})">Assign</button></td></tr>`).join("")}</tbody></table></div></div>`;
@@ -866,10 +870,11 @@ async function newBooking() {
       <div class="col-md-6"><label>Booking Type</label><select class="form-select" name="bookingType"> ${["ONE_WAY","ROUND_TRIP","HOURLY"].map(x=>`<option value="${x}">${x}</option>`).join("")} </select></div>
       <div class="col-md-6"><label>Pickup</label><input class="form-control" name="pickupLocation" required></div>
       <div class="col-md-6"><label>Drop</label><input class="form-control" name="dropLocation" required></div>
-      <div class="col-md-3"><label>Date</label><input type="date" class="form-control" name="pickupDate" required></div>
-      <div class="col-md-3"><label>Time</label><input type="time" class="form-control" name="pickupTime" required></div>
-      <div class="col-md-3"><label>Fare</label><input type="number" step="0.01" class="form-control" name="fare"></div>
+      <div class="col-md-4"><label>Date</label><input type="date" class="form-control" name="pickupDate" required></div>
+      <div class="col-md-4"><label>Time</label><input type="time" class="form-control" name="pickupTime" required></div>
+      <div class="col-md-4"><label>Fare</label><input type="number" step="0.01" class="form-control" name="fare"></div>
       <div class="col-12"><label>Remarks</label><textarea class="form-control" name="remarks"></textarea></div>
+      <div class="col-md-6"><label class="form-label" for="tripCategory">Trip Category<span class="text-danger">*</span></label><select class="form-select" id="tripCategory" name="tripCategory" required><option value="LOCAL" selected>Local Booking</option><option value="OUTSTATION">Outstation Booking</option></select></div>
       <div class="col-12"><button class="btn btn-primary">Create Booking</button></div>
     </form></div></div>`;
 
@@ -902,6 +907,7 @@ async function editBooking(id) {
             ${["ONE_WAY","ROUND_TRIP","HOURLY"].map(x=>`<option value="${x}" ${b.bookingType===x?"selected":""}>${x}</option>`).join("")}
           </select></div>
         <div class="col-12"><label class="form-label">Remarks</label><textarea class="form-control" name="remarks" rows="3">${dcEscape(b.remarks)}</textarea></div>
+        <div class="col-md-6"><label class="form-label" for="tripCategory">Trip Category<span class="text-danger">*</span></label><select class="form-select" id="tripCategory" name="tripCategory" required><option value="LOCAL" ${(b.tripCategory || "LOCAL") === "LOCAL" ? "selected" : ""} >Local Booking</option><option value="OUTSTATION" ${b.tripCategory === "OUTSTATION" ? "selected" : ""} >Outstation Booking</option></select></div>
         <div class="col-12"><button class="btn btn-primary">Update Booking</button></div>
       </form>
     </div></div>`;
@@ -1072,6 +1078,220 @@ function changePasswordForm() {
     }
   });
 }
+
+async function applicationSettingsPage() {
+  const page = document.getElementById("page");
+
+  page.innerHTML = `<div class="d-flex justify-content-center align-items-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>`;
+  try {
+    const settings = await api("/admin/settings");
+    const general = settings.general || {};
+    const notifications = settings.notifications || {};
+    const email = settings.email || {};
+    const sms = settings.sms || {};
+    const whatsapp = settings.whatsapp || {};
+    const commission = settings.driverCommission || {};
+
+    page.innerHTML = `<!-- ====================================== --><!-- PAGE HEADER --><!-- ====================================== --><div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4"><div><h4 class="mb-1"><i class="bi bi-gear me-2"></i>Application Settings</h4><div class="text-muted">Configure system preferences, notifications, messaging and driver commission.</div></div><button type="button" class="btn btn-primary" id="saveAllSettingsBtn"><i class="bi bi-check-lg me-1"></i>Save Settings</button></div><div id="settingsAlert" class="mb-3"></div><form id="applicationSettingsForm" novalidate><!-- ====================================== --><!-- GENERAL SETTINGS --><!-- ====================================== --><div class="card shadow-sm mb-4"><div class="card-header bg-white"><div class="d-flex align-items-center"><div class="settings-icon me-3"><i class="bi bi-building"></i></div><div><h5 class="mb-0">General Settings</h5><small class="text-muted">Basic application configuration.</small></div></div></div><div class="card-body"><div class="row g-3"><div class="col-md-6"><label for="settingCompanyName" class="form-label">Company Name</label><input type="text" class="form-control" id="settingCompanyName" value="${dcEscape(general.companyName || "")}" required><div class="invalid-feedback">Company name is required.</div></div><div class="col-md-6"><label for="settingCurrency" class="form-label">Currency</label><select class="form-select" id="settingCurrency" required><option value="INR" ${general.currency === "INR" ? "selected" : ""}>INR - Indian Rupee</option><option value="USD" ${general.currency === "USD" ? "selected" : ""}>USD - US Dollar</option><option value="EUR" ${general.currency === "EUR" ? "selected" : ""}>EUR - Euro</option><option value="GBP" ${general.currency === "GBP" ? "selected" : ""}>GBP - British Pound</option></select></div></div></div></div><!-- ====================================== --><!-- NOTIFICATIONS --><!-- ====================================== --><div class="card shadow-sm mb-4"><div class="card-header bg-white"><div class="d-flex justify-content-between align-items-center"><div class="d-flex align-items-center"><div class="settings-icon me-3"><i class="bi bi-bell"></i></div><div><h5 class="mb-0">Notifications</h5><small class="text-muted">Control system notification events.</small></div></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="notificationEnabled" ${notifications.enabled ? "checked" : ""}><label class="form-check-label" for="notificationEnabled">Enabled</label></div></div></div><div class="card-body" id="notificationSettingsContainer"><div class="row g-3"><div class="col-md-4"><div class="settings-option"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="notifyBookingCreated" ${notifications.bookingCreated ? "checked" : ""}><label class="form-check-label fw-semibold" for="notifyBookingCreated">Booking Created</label></div><small class="text-muted d-block mt-2"> Notify customer after a new booking is created.</small></div></div><div class="col-md-4"><div class="settings-option"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="notifyDriverAssigned" ${notifications.driverAssigned ? "checked" : ""}><label class="form-check-label fw-semibold" for="notifyDriverAssigned">Driver Assigned</label></div><small class="text-muted d-block mt-2">Notify driver when a booking is assigned.</small></div></div><div class="col-md-4"><div class="settings-option"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="notifyBookingStatus" ${notifications.bookingStatusChanged ? "checked" : ""}><label class="form-check-label fw-semibold" for="notifyBookingStatus">Booking Status</label></div><small class="text-muted d-block mt-2">Notify customer whenever booking status changes.</small></div></div></div></div></div><!-- ====================================== --><!-- EMAIL SETTINGS --><!-- ====================================== --><div class="card shadow-sm mb-4"><div class="card-header bg-white"><div class="d-flex justify-content-between align-items-center"><div class="d-flex align-items-center"><div class="settings-icon me-3"><i class="bi bi-envelope"></i></div><div><h5 class="mb-0">Email</h5><small class="text-muted">Configure outgoing email notifications.</small></div></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="emailEnabled" ${email.enabled ? "checked" : ""}><label class="form-check-label" for="emailEnabled">Enabled</label></div></div></div><div class="card-body" id="emailSettingsContainer"><div class="row g-3"><div class="col-md-6"><label class="form-label" for="emailFromName">Sender Name</label><input type="text" class="form-control" id="emailFromName" value="${dcEscape(email.fromName || "")}" placeholder="Driver Center"></div><div class="col-md-6"><label class="form-label" for="emailFromAddress">Sender Email</label><input type="email" class="form-control" id="emailFromAddress" value="${dcEscape(email.fromEmail || "")}" placeholder="booking@example.com"></div></div><div class="alert alert-light border mt-3 mb-0"><i class="bi bi-shield-lock me-2"></i>SMTP host, username and password should remain in your server <code>.env</code> file.</div></div></div><!-- ====================================== --><!-- SMS SETTINGS --><!-- ====================================== --><div class="card shadow-sm mb-4"><div class="card-header bg-white"><div class="d-flex justify-content-between align-items-center"><div class="d-flex align-items-center"><div class="settings-icon me-3"><i class="bi bi-chat-left-text"></i></div><div><h5 class="mb-0">SMS</h5><small class="text-muted">SMS provider configuration.</small></div></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="smsEnabled" ${sms.enabled ? "checked" : ""}><label class="form-check-label" for="smsEnabled">Enabled</label></div></div></div><div class="card-body" id="smsSettingsContainer"><div class="row"><div class="col-md-6"><label for="smsProvider" class="form-label">SMS Provider</label><select class="form-select" id="smsProvider"><option value="NONE" ${!sms.provider || sms.provider === "NONE" ? "selected" : ""}>None</option><option value="TWILIO" ${sms.provider === "TWILIO" ? "selected" : ""}>Twilio</option><option value="MSG91" ${sms.provider === "MSG91" ? "selected" : ""}>MSG91</option><option value="AWS_SNS" ${sms.provider === "AWS_SNS" ? "selected" : ""}>AWS SNS</option></select></div></div><div class="alert alert-light border mt-3 mb-0">API credentials must be configured through server environment variables.</div></div></div><!-- ====================================== --><!-- WHATSAPP SETTINGS --><!-- ====================================== --><div class="card shadow-sm mb-4"><div class="card-header bg-white"><div class="d-flex justify-content-between align-items-center"><div class="d-flex align-items-center"><div class="settings-icon me-3"><i class="bi bi-whatsapp"></i></div><div><h5 class="mb-0">WhatsApp</h5><small class="text-muted">Configure WhatsApp booking messages.</small></div></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="whatsappEnabled" ${whatsapp.enabled ? "checked" : ""}><label class="form-check-label" for="whatsappEnabled">Enabled</label></div></div></div><div class="card-body" id="whatsappSettingsContainer"><div class="row"><div class="col-md-6"><label class="form-label" for="whatsappProvider">WhatsApp Provider</label><select class="form-select" id="whatsappProvider"><option value="NONE" ${!whatsapp.provider || whatsapp.provider === "NONE" ? "selected" : ""}>None</option><option value="TWILIO" ${whatsapp.provider === "TWILIO" ? "selected" : ""}>Twilio</option><option value="META" ${whatsapp.provider === "META" ? "selected" : ""}>Meta WhatsApp Cloud API</option></select></div></div></div></div><!-- ====================================== --><!-- DRIVER COMMISSION --><!-- ====================================== --><div class="card shadow-sm mb-4"><div class="card-header bg-white"><div class="d-flex align-items-center"><div class="settings-icon me-3"><i class="bi bi-percent"></i></div><div><h5 class="mb-0">Driver Commission</h5><small class="text-muted">Default commission applied to newly created bookings.</small></div></div></div><div class="card-body"><div class="row g-3"><div class="col-md-4"><label class="form-label" for="commissionType">Commission Type</label><select class="form-select" id="commissionType"><option value="PERCENTAGE" ${!commission.type || commission.type === "PERCENTAGE" ? "selected" : ""}>Percentage</option><option value="FIXED" ${commission.type === "FIXED" ? "selected" : ""}>Fixed Amount</option></select></div><div class="col-md-4"><label class="form-label" id="commissionValueLabel" for="commissionValue">Commission Value</label><div class="input-group"><span class="input-group-text" id="commissionPrefix">%</span><input type="number" min="0" step="0.01" class="form-control" id="commissionValue" value="${Number(commission.value || 0)}" required></div><div class="invalid-feedback">Enter a valid commission.</div></div><div class="col-md-4 d-flex align-items-end"><div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" id="commissionIncludeAllowances" ${commission.includeAllowances ? "checked" : ""}><label class="form-check-label" for="commissionIncludeAllowances">Include Driver Allowances</label></div></div></div><div class="alert alert-info mt-4 mb-0"><i class="bi bi-info-circle me-2"></i>Changes here affect <strong>newly created bookings</strong>. Existing bookings retain their previously saved commission rate.</div><div class="border rounded bg-light p-3 mt-3"><div class="small text-muted mb-2">Commission Preview</div><div class="row g-2"><div class="col-md-4"><div class="fw-semibold">Example Base Fare</div><div>₹10,000</div></div><div class="col-md-4"><div class="fw-semibold">Platform Commission</div><div id="commissionPreviewAmount">₹0</div></div><div class="col-md-4"><div class="fw-semibold">Driver Earning</div><div id="commissionPreviewDriver">₹10,000</div></div></div></div></div></div><!-- ====================================== --><!-- BOTTOM ACTION --><!-- ====================================== --><div class="d-flex justify-content-end gap-2 mb-4"><button type="button" class="btn btn-outline-secondary" id="reloadSettingsBtn"><i class="bi bi-arrow-clockwise me-1"></i>Reload</button><button type="submit" class="btn btn-primary" id="settingsSubmitBtn"><i class="bi bi-check-lg me-1"></i>Save Settings</button></div></form>`;
+
+    /*
+     * ==========================================
+     * DOM ELEMENTS
+     * ==========================================
+     */
+    const form = document.getElementById("applicationSettingsForm");
+    const alertContainer = document.getElementById("settingsAlert");
+    const notificationEnabled = document.getElementById("notificationEnabled");
+    const emailEnabled = document.getElementById("emailEnabled");
+    const smsEnabled = document.getElementById("smsEnabled");
+    const whatsappEnabled = document.getElementById("whatsappEnabled");
+    const commissionType = document.getElementById("commissionType");
+    const commissionValue = document.getElementById("commissionValue");
+    const commissionPrefix = document.getElementById("commissionPrefix");
+    const commissionValueLabel = document.getElementById("commissionValueLabel");
+    const saveAllBtn = document.getElementById("saveAllSettingsBtn");
+    const submitBtn = document.getElementById("settingsSubmitBtn");
+
+    /*
+     * ==========================================
+     * ENABLE / DISABLE SECTIONS
+     * ==========================================
+     */
+    function updateSectionState(enabled, containerId) {
+      const container =  document.getElementById(containerId);
+      if (!container) {
+        return;
+      }
+
+      container.querySelectorAll("input, select, textarea, button").forEach(element => {element.disabled = !enabled;});
+      container.classList.toggle("settings-disabled", !enabled);
+    }
+
+    function refreshToggleStates() {
+      updateSectionState(notificationEnabled.checked, "notificationSettingsContainer");
+      updateSectionState(emailEnabled.checked, "emailSettingsContainer");
+      updateSectionState(smsEnabled.checked, "smsSettingsContainer");
+      updateSectionState(whatsappEnabled.checked, "whatsappSettingsContainer");
+    }
+
+    notificationEnabled.addEventListener("change", refreshToggleStates);
+    emailEnabled.addEventListener("change", refreshToggleStates);
+    smsEnabled.addEventListener("change", refreshToggleStates);
+    whatsappEnabled.addEventListener("change", refreshToggleStates);
+
+    /*
+     * ==========================================
+     * COMMISSION DISPLAY
+     * ==========================================
+     */
+    function refreshCommissionUI() {
+      const type = commissionType.value;
+
+      if (type === "PERCENTAGE") {
+        commissionPrefix.textContent = "%";
+        commissionValueLabel.textContent = "Commission Percentage";
+        commissionValue.max = "100";
+      } else {
+        commissionPrefix.textContent = "₹";
+        commissionValueLabel.textContent = "Fixed Commission";
+        commissionValue.removeAttribute("max");
+      }
+
+      updateCommissionPreview();
+    }
+
+    function updateCommissionPreview() {
+      const exampleFare = 10000;
+      const value = Number(commissionValue.value || 0);
+
+      let amount = 0;
+      if (commissionType.value === "PERCENTAGE") {
+        amount = exampleFare * (value / 100);
+      } else {
+        amount = value;
+      }
+
+      amount = Math.min(exampleFare, Math.max(0, amount));
+      const driverEarning = exampleFare - amount;
+
+      document.getElementById("commissionPreviewAmount").textContent = formatCurrency(amount);
+      document.getElementById("commissionPreviewDriver").textContent = formatCurrency(driverEarning);
+    }
+
+    function formatCurrency(amount) {
+      const currency = document.getElementById("settingCurrency").value || "INR";
+
+      try {
+        return new Intl.NumberFormat("en-IN", {style: "currency", currency}).format(Number(amount || 0));
+      } catch {
+        return `₹${Number(amount || 0).toFixed(2)}`;
+      }
+    }
+
+    commissionType.addEventListener("change", refreshCommissionUI);
+    commissionValue.addEventListener("input", updateCommissionPreview);
+    document.getElementById("settingCurrency").addEventListener("change", updateCommissionPreview);
+
+    /*
+     * ==========================================
+     * SAVE
+     * ==========================================
+     */
+    async function saveSettings() {
+      alertContainer.innerHTML = "";
+      form.classList.add("was-validated");
+      
+      if (!form.checkValidity()) {
+        return;
+      }
+
+      const commissionNumber = Number(commissionValue.value);
+      if (commissionType.value === "PERCENTAGE" && (commissionNumber < 0 || commissionNumber > 100)) {
+        showSettingsAlert("danger", "Percentage commission must be between 0 and 100.");
+        return;
+      }
+
+      const payload = {
+        general: {companyName: document.getElementById("settingCompanyName").value.trim(), currency: document.getElementById("settingCurrency").value},
+        notifications: {
+          enabled: notificationEnabled.checked, 
+          bookingCreated: document.getElementById("notifyBookingCreated").checked, 
+          driverAssigned: document.getElementById("notifyDriverAssigned").checked,
+          bookingStatusChanged: document.getElementById("notifyBookingStatus").checked
+        },
+        email: {enabled: emailEnabled.checked, fromName: document.getElementById("emailFromName").value.trim(), fromEmail: document.getElementById("emailFromAddress").value.trim()},
+        sms: {enabled: smsEnabled.checked, provider: document.getElementById("smsProvider").value},
+        whatsapp: {enabled: whatsappEnabled.checked, provider: document.getElementById("whatsappProvider").value},
+        driverCommission: {type: commissionType.value, value: commissionNumber, includeAllowances: document.getElementById("commissionIncludeAllowances").checked}
+      };
+
+      /*
+       * Disable both save buttons.
+       */
+      const originalSubmit = submitBtn.innerHTML;
+      const originalTop = saveAllBtn.innerHTML;
+      submitBtn.disabled = true;
+      saveAllBtn.disabled = true;
+
+      submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Saving...`;
+      saveAllBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Saving...`;
+
+      try {
+        await api("/admin/settings",{method: "PUT", body: JSON.stringify(payload)});
+        showSettingsAlert("success", "Application settings saved successfully.");
+        form.classList.remove("was-validated");
+        window.scrollTo({top: 0, behavior: "smooth"});
+      } catch (error) {
+        showSettingsAlert("danger", error.message || "Unable to save application settings.");
+      } finally {
+        submitBtn.disabled = false;
+        saveAllBtn.disabled = false;
+        submitBtn.innerHTML = originalSubmit;
+        saveAllBtn.innerHTML = originalTop;
+      }
+    }
+
+    /*
+     * Form submit
+     */
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      await saveSettings();
+    });
+
+    /*
+     * Header save button
+     */
+    saveAllBtn.addEventListener("click", async () => {
+      await saveSettings();
+    });
+
+    /*
+     * Reload settings
+     */
+    document.getElementById("reloadSettingsBtn").addEventListener("click", async () => {
+      await applicationSettingsPage();
+    });
+
+    /*
+     * ==========================================
+     * ALERT
+     * ==========================================
+     */
+    function showSettingsAlert(type, message) {
+      alertContainer.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">${type === "success" ? `<i class="bi bi-check-circle me-2"></i>` : `<i class="bi bi-exclamation-triangle me-2"></i>`} ${dcEscape(message)} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button></div>`;
+    }
+
+    /*
+     * Initial rendering
+     */
+    refreshToggleStates();
+    refreshCommissionUI();
+  } catch (error) {
+    page.innerHTML = `<div class="alert alert-danger"><h5><i class="bi bi-exclamation-triangle me-2"></i>Unable to load application settings</h5><div> ${dcEscape(error.message || "Unknown error")} </div></div>`;
+  }
+}
+
 
 // const changePasswordBtn = document.getElementById("changePasswordBtn");
 // if (changePasswordBtn) {

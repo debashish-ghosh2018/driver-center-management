@@ -1,10 +1,11 @@
 require("dotenv").config();
 
 const app = require("./app");
-const http=require("http");
-const {Server}=require("socket.io");
+const http = require("http");
+const { Server } = require("socket.io");
 const { sequelize, User } = require("./models");
 const { seedAcl } = require("./services/acl.service");
+const { seedAppSettings } = require("./services/appSettingsSeeder.service");
 
 const PORT = process.env.PORT || 5000;
 
@@ -15,6 +16,7 @@ const PORT = process.env.PORT || 5000;
     await sequelize.sync({ alter: false });
     await User.seedAdmin();
     await seedAcl();
+    await seedAppSettings();
 
     const httpServer = http.createServer(app);
     const io = new Server(httpServer,{cors:{origin:process.env.CORS_ORIGIN||"*"}}); 

@@ -14,9 +14,10 @@ const User = require("./User"),
 // ACL
 const Permission = require("./Permission");
 const RolePermission = require("./RolePermission");
+const AppSetting = require("./AppSetting");
 
 
-[User, Customer, Driver, Vehicle, Booking, Payment, Rating, DriverLocation, Notification, AuditLog, DriverEarning, Permission, RolePermission].forEach(M => M.initModel(sequelize));
+[User, Customer, Driver, Vehicle, Booking, Payment, Rating, DriverLocation, Notification, AuditLog, DriverEarning, Permission, RolePermission, AppSetting].forEach(M => M.initModel(sequelize));
 Customer.hasMany(Booking, {foreignKey: "customerId"});
 Customer.belongsTo(User, {foreignKey: "userId", as: "user"});
 Driver.hasMany(Booking, {foreignKey: "driverId"});
@@ -56,5 +57,6 @@ module.exports = {
     AuditLog,
     DriverEarning,
     Permission,
-    RolePermission
+    RolePermission,
+    AppSetting
 };

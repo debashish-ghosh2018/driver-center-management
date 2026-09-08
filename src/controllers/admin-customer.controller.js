@@ -10,7 +10,6 @@ exports.createCustomerWithUser = async (req, res, next) => {
 
       if (createUser) {
         const existing = await User.unscoped().findOne({where: { email }, transaction});
-
         if (existing) {
           await transaction.rollback();
           return res.status(409).json({message: "User already exists with this email"});
